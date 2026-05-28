@@ -67,3 +67,22 @@ variable "availability_zones" {
     "ap-southeast-1c"
   ]
 }
+
+# ========== SECURITY GROUP ==========
+
+
+# ========== APPLICATION LOAD BALANCER ==========
+
+
+# ========== EC2 ==========
+
+
+# ========== AUTOSCALING ==========
+
+
+# ========== RDS ==========
+
+
+# ========== MONITORING ==========
+
+
