@@ -47,3 +47,81 @@ Database Tier (RDS Private)
 | tfsec    | Quét lỗi bảo mật cho Infrastructure as Code                                            |
 | Checkov  | Quét security và compliance, hỗ trợ nhiều framework như AWS Foundations, NIST, PCI DSS |
 | OPA/Rego | Policy as Code, tự định nghĩa quy tắc và chính sách tổ chức                            |
+
+```bash
+Developer Push/Pull Request
+            ↓
+GitHub Actions
+            ↓
+Terraform Format (fmt)
+            ↓
+Terraform Validate
+            ↓
+TFLint
+            ↓
+tfsec
+            ↓
+Checkov
+            ↓
+OPA/Rego Policy Check
+            ↓
+Terraform Plan
+            ↓
+Manual Approval
+            ↓
+Terraform Apply
+            ↓
+Deploy AWS Infrastructure
+```
+
+```bash
+AWS-Three-Tier-Architecture/
+│
+├── backend/
+│   ├── backend.tf
+│   └── terraform.tfvars
+│
+├── environments/
+│   ├── dev/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   ├── terraform.tfvars
+│   │   ├── outputs.tf
+│   │   └── backend.tf
+│   │
+│   └── prod/
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── terraform.tfvars
+│       ├── outputs.tf
+│       └── backend.tf
+│
+├── modules/
+│   ├── vpc/
+│   ├── security-group/
+│   ├── alb/
+│   ├── ec2/
+│   ├── autoscaling/
+│   ├── rds/
+│   ├── iam/
+│   ├── monitoring/
+│   └── bastion/
+│
+├── scripts/
+│   ├── user-data.sh
+│   └── install-nginx.sh
+│
+├── diagrams/
+│   └── architecture.png
+│
+├── .github/
+│   └── workflows/
+│       ├── terraform-ci.yml
+│       └── terraform-cd.yml
+│
+├── providers.tf
+├── versions.tf
+├── outputs.tf
+├── README.md
+└── .gitignore
+```
