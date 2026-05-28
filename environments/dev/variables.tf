@@ -75,7 +75,18 @@ variable "availability_zones" {
 
 
 # ========== EC2 ==========
+variable "ami_id" {
+  description = "AMI ID for EC2 instances"
+  type        = string
+  default = "ami-0543dbdaf4e114be7"
+}
+# ami = ami-0543dbdaf4e114be7 / ami-0d105bf3c7d10a264
 
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default = "t3.micro"
+}
 
 # ========== AUTOSCALING ==========
 

@@ -33,14 +33,43 @@ module "alb" {
   public_subnet_ids = module.vpc.public_subnet_ids
   alb_security_group_id = module.security-group.alb_security_group_id
 }
+
 # ===== MODULE: EC2 =====
 module "ec2" {
   source = "../../modules/ec2"
+
+  project_name = var.project_name
+  environment = var.environment
+
+  ami_id = var.ami_id
+  instance_type = var.instance_type
+  app_subnet_ids = module.vpc.app_subnet_ids
+  ec2_security_group_id = module.security-group.ec2_security_group_id
+  target_group_arn = module.alb.target_group_arn
 }
 
 # ===== MODULE: AUTO SCALING =====
+module "autoscaling" {
+  source = "../../modules/autoscaling"
+
+  project_name = var.project_name
+  environment = var.environment
+
+}
 
 # ===== MODULE: RDS =====
+module "rds" {
+  source = "../../modules/rds"
 
+  project_name = var.project_name
+  environment = var.environment
+
+}
 # ===== MODULE: MONITORING =====
+module "monitoring" {
+  source = "../../modules/monitoring"
 
+  project_name = var.project_name
+  environment = var.environment
+
+}
