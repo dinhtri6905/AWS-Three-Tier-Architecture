@@ -10,6 +10,6 @@ variable "environment" {
 }
 
 variable "vpc_id" {
-  description = "value"
+  description = "VPC ID"
   type = string
 }
