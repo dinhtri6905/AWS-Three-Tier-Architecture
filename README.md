@@ -75,53 +75,54 @@ Deploy AWS Infrastructure
 ```
 
 ```bash
-AWS-Three-Tier-Architecture/
+AWS-Three-Tier-Architecture
 │
-├── backend/
-│   ├── backend.tf
-│   └── terraform.tfvars
+├── .github
+│   └── workflows
+│       ├── terraform-pr.yml
+│       └── terraform-deploy.yml
 │
-├── environments/
-│   ├── dev/
+├── backend
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── providers.tf
+│   └── versions.tf
+│
+├── environments
+│   ├── dev
+│   │   ├── backend.tf
 │   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   ├── providers.tf
 │   │   ├── variables.tf
 │   │   ├── terraform.tfvars
-│   │   ├── outputs.tf
-│   │   └── backend.tf
+│   │   └── versions.tf
 │   │
-│   └── prod/
+│   └── prod
+│       ├── backend.tf
 │       ├── main.tf
+│       ├── outputs.tf
+│       ├── providers.tf
 │       ├── variables.tf
 │       ├── terraform.tfvars
-│       ├── outputs.tf
-│       └── backend.tf
+│       └── versions.tf
 │
-├── modules/
+├── modules
 │   ├── vpc/
 │   ├── security-group/
 │   ├── alb/
 │   ├── ec2/
 │   ├── autoscaling/
 │   ├── rds/
-│   ├── iam/
-│   ├── monitoring/
-│   └── bastion/
+│   └── monitoring/
 │
-├── scripts/
-│   ├── user-data.sh
-│   └── install-nginx.sh
+├── policies
+│   ├── security.rego
+│   ├── networking.rego
+│   └── compliance.rego
 │
-├── diagrams/
-│   └── architecture.png
-│
-├── .github/
-│   └── workflows/
-│       ├── terraform-ci.yml
-│       └── terraform-cd.yml
-│
-├── providers.tf
-├── versions.tf
-├── outputs.tf
-├── README.md
-└── .gitignore
+├── .gitignore
+├── PROJECT.md
+└── README.md
 ```

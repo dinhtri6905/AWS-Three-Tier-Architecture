@@ -28,6 +28,9 @@ crash.*.log
 # Generated plan files
 *.tfplan
 
+*.lock.hcl
+*.lock
+
 # ======================
 # IDE / OS
 # ======================
