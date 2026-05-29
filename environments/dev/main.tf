@@ -61,9 +61,10 @@ module "autoscaling" {
 
   app_subnet_ids = module.vpc.app_subnet_ids
   target_group_arn = module.alb.target_group_arn
-  desired_capacity = var.desired_capacity // chưa có 
-  min_size = var.min_size //chưa có
-  max_size = var.max_size // chưa có
+  
+  desired_capacity = var.desired_capacity
+  min_size = var.min_size
+  max_size = var.max_size
 }
 
 # ===== MODULE: RDS =====
@@ -73,6 +74,18 @@ module "rds" {
   project_name = var.project_name
   environment = var.environment
 
+  db_subnet_ids        = module.vpc.db_subnet_ids
+  rds_security_group_id = module.security_group.rds_security_group_id
+
+  db_instance_class     = var.db_instance_class
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.max_allocated_storage
+
+  database_name     = var.database_name
+  database_username = var.database_username
+  database_password = var.database_password
+
+  multi_az = var.multi_az
 }
 # ===== MODULE: MONITORING =====
 module "monitoring" {
