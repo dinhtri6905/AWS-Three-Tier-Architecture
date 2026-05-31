@@ -26,6 +26,20 @@ on:
       - 'modules/**'
       - 'policies/**'
       - '.github/workflows/**'
+  
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: "Choose scan type"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - validate
+          - tflint
+          - tfsec
+          - checkov
 
 env:
   AWS_REGION: ap-southeast-1
@@ -38,6 +52,10 @@ env:
 # =============================================================================
 jobs:
   validate:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'validate'
     name: Validate and Format
     runs-on: ubuntu-latest
     defaults:
@@ -93,6 +111,10 @@ jobs:
 # JOB 2: TFLint - AWS best practices, naming convention, required providers
 # =============================================================================
   tflint:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'tflint'
     name: TFLint Analysis
     runs-on: ubuntu-latest
     needs: validate
@@ -178,6 +200,10 @@ jobs:
 # JOB 3: tfsec - IaC security scanning
 # =============================================================================
   tfsec:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'tfsec'
     name: tfsec Security Scan
     runs-on: ubuntu-latest
     needs: validate
@@ -199,6 +225,10 @@ jobs:
 # SARIF duoc upload len GitHub Security tab.
 # =============================================================================
   checkov:
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.scan_type == 'all' ||
+      github.event.inputs.scan_type == 'checkov'
     name: Checkov Compliance Scan
     runs-on: ubuntu-latest
     needs: validate
