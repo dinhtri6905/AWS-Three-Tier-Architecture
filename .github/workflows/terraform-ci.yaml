@@ -54,8 +54,14 @@ jobs:
   validate:
     if: |
       github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.scan_type == 'all' ||
-      github.event.inputs.scan_type == 'validate'
+      github.event.inputs.scan_type != ''
+    # if: |
+    #   github.event_name != 'workflow_dispatch' ||
+    #   github.event.inputs.scan_type == 'all' ||
+    #   github.event.inputs.scan_type == 'validate' ||
+    #   github.event.inputs.scan_type == 'tflint' ||
+    #   github.event.inputs.scan_type == 'tfsec' ||
+    #   github.event.inputs.scan_type == 'checkov'
     name: Validate and Format
     runs-on: ubuntu-latest
     defaults:

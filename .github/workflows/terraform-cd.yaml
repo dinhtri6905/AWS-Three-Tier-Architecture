@@ -21,6 +21,7 @@ name: Terraform CD
 on:
   push:
     branches:
+      - main
       - develop
     paths:
       - 'environments/dev/**'
