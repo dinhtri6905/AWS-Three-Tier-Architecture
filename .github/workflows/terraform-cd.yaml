@@ -1,0 +1,401 @@
+name: Terraform CD
+
+# Deploy infrastructure cho moi truong dev.
+#
+# Trigger:
+#   push len develop (auto plan + apply sau khi qua OPA gate)
+#   workflow_dispatch: chon action = plan | apply | destroy
+#
+# Luong chay (push hoac apply):
+#   plan --> opa-gate --> deploy
+#
+# Luong chay (destroy - workflow_dispatch only):
+#   destroy (can thu cong chay, khong auto)
+#
+# GitHub Secrets can thiet:
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+#   BUCKET_TF_STATE (S3 bucket luu Terraform state)
+#   DB_PASSWORD     (truyen qua TF_VAR_db_password)
+#   SLACK_WEBHOOK_URL
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'environments/dev/**'
+      - 'modules/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action: plan | apply | destroy'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  AWS_REGION: ap-southeast-1
+  TERRAFORM_VERSION: 1.8.0
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+  TF_IN_AUTOMATION: 'true'
+
+# =============================================================================
+# JOB 1: Terraform Plan
+# Init voi S3 backend thuc, plan va export JSON cho OPA.
+# Binary plan duoc upload lam artifact de apply job tai xuong.
+# =============================================================================
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/dev
+    outputs:
+      exitcode: ${{ steps.plan.outputs.exitcode }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform init -backend-config="bucket=$BUCKET_TF_STATE" -input=false -no-color
+
+      - name: Terraform plan
+        id: plan
+        run: |
+          set +e
+          terraform plan \
+            -var-file="terraform.tfvars" \
+            -out=tfplan \
+            -detailed-exitcode \
+            -no-color \
+            -input=false \
+            2>&1 | tee ${{ runner.temp }}/plan-output.txt
+          EXITCODE=$?
+          set -e
+          echo "exitcode=$EXITCODE" >> $GITHUB_OUTPUT
+
+          # exit 0 = no changes, exit 2 = changes present, exit 1 = error
+          if [ "$EXITCODE" -eq 1 ]; then
+            echo "Terraform plan failed."
+            exit 1
+          fi
+          echo "Plan exit code: $EXITCODE (0=no changes, 2=changes)"
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+      - name: Export plan to JSON
+        run: |
+          terraform show -json tfplan > ${{ runner.temp }}/tfplan.json
+          jq -e . ${{ runner.temp }}/tfplan.json > /dev/null
+          echo "Plan JSON exported successfully."
+
+      - name: Upload binary plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-binary-${{ github.sha }}
+          path: environments/dev/tfplan
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Upload JSON plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-json-${{ github.sha }}
+          path: ${{ runner.temp }}/tfplan.json
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Write plan to Step Summary
+        run: |
+          echo "## Terraform Plan - DEV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat ${{ runner.temp }}/plan-output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+# =============================================================================
+# JOB 2: OPA Policy Gate
+# Tai JSON plan tu artifact, chay 3 policy file.
+# Den khi tat ca deny = 0 thi moi cho phep deploy.
+# Warn duoc in ra log nhung khong block pipeline.
+# =============================================================================
+  opa-gate:
+    name: OPA Policy Gate
+    runs-on: ubuntu-latest
+    needs: plan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download JSON plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-json-${{ github.sha }}
+          path: ${{ runner.temp }}/
+
+      - name: Setup OPA
+        run: |
+          mkdir -p /tmp/opa
+          curl -sSL -o /tmp/opa/opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64
+          chmod +x /tmp/opa/opa
+          /tmp/opa/opa version
+
+      - name: OPA - Security policies
+        id: opa_security
+        run: |
+          RESULT=$(/tmp/opa/opa eval \
+            --format json \
+            --data policies/security.rego \
+            --input ${{ runner.temp }}/tfplan.json \
+            "data.terraform.security.deny")
+
+          COUNT=$(echo "$RESULT" | jq '.result[0].expressions[0].value | length')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$COUNT" -gt 0 ]; then
+            echo "--- Security violations: $COUNT ---"
+            echo "$RESULT" | jq -r '.result[0].expressions[0].value[]' | sed 's/^/  [DENY] /'
+            exit 1
+          fi
+          echo "Security: PASS (0 violations)"
+
+      - name: OPA - Networking policies
+        id: opa_networking
+        run: |
+          RESULT=$(/tmp/opa/opa eval \
+            --format json \
+            --data policies/networking.rego \
+            --input ${{ runner.temp }}/tfplan.json \
+            "data.terraform.networking.deny")
+
+          COUNT=$(echo "$RESULT" | jq '.result[0].expressions[0].value | length')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$COUNT" -gt 0 ]; then
+            echo "--- Networking violations: $COUNT ---"
+            echo "$RESULT" | jq -r '.result[0].expressions[0].value[]' | sed 's/^/  [DENY] /'
+            exit 1
+          fi
+          echo "Networking: PASS (0 violations)"
+
+      - name: OPA - Compliance policies (CIS Benchmark)
+        id: opa_compliance
+        run: |
+          RESULT=$(/tmp/opa/opa eval \
+            --format json \
+            --data policies/compliance.rego \
+            --input ${{ runner.temp }}/tfplan.json \
+            "data.terraform.compliance.deny")
+
+          COUNT=$(echo "$RESULT" | jq '.result[0].expressions[0].value | length')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$COUNT" -gt 0 ]; then
+            echo "--- Compliance violations: $COUNT ---"
+            echo "$RESULT" | jq -r '.result[0].expressions[0].value[]' | sed 's/^/  [DENY] /'
+            exit 1
+          fi
+          echo "Compliance: PASS (0 violations)"
+
+      - name: OPA - Warnings (non-blocking)
+        if: always()
+        run: |
+          for policy in security networking compliance; do
+            RESULT=$(/tmp/opa/opa eval \
+              --format json \
+              --data "policies/${policy}.rego" \
+              --input ${{ runner.temp }}/tfplan.json \
+              "data.terraform.${policy}.warn" 2>/dev/null \
+              || echo '{"result":[{"expressions":[{"value":[]}]}]}')
+
+            COUNT=$(echo "$RESULT" | jq '.result[0].expressions[0].value | length' 2>/dev/null || echo 0)
+            if [ "$COUNT" -gt 0 ]; then
+              echo "--- ${policy} warnings: $COUNT ---"
+              echo "$RESULT" | jq -r '.result[0].expressions[0].value[]' | sed "s/^/  [WARN] /"
+            fi
+          done
+
+      - name: Upload OPA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opa-report-${{ github.sha }}
+          path: ${{ runner.temp }}/tfplan.json
+          retention-days: 7
+
+      - name: Write OPA results to Step Summary
+        if: always()
+        run: |
+          echo "## OPA Policy Gate - DEV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Policy     | Result | Violations |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Security   | ${{ steps.opa_security.outcome }} | ${{ steps.opa_security.outputs.count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Networking | ${{ steps.opa_networking.outcome }} | ${{ steps.opa_networking.outputs.count }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compliance | ${{ steps.opa_compliance.outcome }} | ${{ steps.opa_compliance.outputs.count }} |" >> $GITHUB_STEP_SUMMARY
+
+# =============================================================================
+# JOB 3: Terraform Apply
+# Chi chay khi:
+#   - push len develop (tu dong)
+#   - workflow_dispatch voi action = apply
+# Tai binary plan da duoc upload o job plan.
+# =============================================================================
+  deploy:
+    name: Deploy to DEV
+    runs-on: ubuntu-latest
+    needs: [plan, opa-gate]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform init -backend-config="bucket=$BUCKET_TF_STATE" -input=false -no-color
+
+      - name: Download binary plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-binary-${{ github.sha }}
+          path: environments/dev/
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve -no-color -input=false tfplan
+
+      - name: Capture Terraform outputs
+        run: terraform output -json > ${{ runner.temp }}/outputs.json
+
+      - name: Upload outputs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tf-outputs-${{ github.sha }}
+          path: ${{ runner.temp }}/outputs.json
+          retention-days: 30
+
+      - name: Write deploy summary
+        run: |
+          echo "## Deploy Completed - DEV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch      | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit      | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Actor       | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+
+# =============================================================================
+# JOB 4: Terraform Destroy
+# Chi chay khi workflow_dispatch voi action = destroy.
+# Phai chay thu cong, khong bao gio auto-trigger.
+# =============================================================================
+  destroy:
+    name: Destroy DEV Infrastructure
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./environments/dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform init
+        run: terraform init -backend-config="bucket=$BUCKET_TF_STATE" -input=false -no-color
+
+      - name: Terraform destroy plan
+        id: destroy_plan
+        run: terraform plan -destroy -var-file="terraform.tfvars" -out=tfplan_destroy -no-color
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+      - name: Destroy plan status
+        if: steps.destroy_plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform destroy
+        run: terraform destroy -auto-approve -no-color
+        env:
+          TF_INPUT: false
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+# =============================================================================
+# JOB 5: Slack Notification - bao cao trang thai cuoi cung cua pipeline
+# =============================================================================
+  notify:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs: [plan, opa-gate, deploy]
+    if: always()
+    steps:
+      - name: Notify Slack
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_COLOR: >-
+            ${{
+              needs.deploy.result == 'success' && 'good' ||
+              needs.deploy.result == 'skipped' && 'warning' ||
+              'danger'
+            }}
+          SLACK_TITLE: "Terraform CD - DEV"
+          SLACK_MESSAGE: |
+            Branch      : ${{ github.ref_name }}
+            Commit      : ${{ github.sha }}
+            Actor       : ${{ github.actor }}
+            Plan        : ${{ needs.plan.result }}
+            OPA Gate    : ${{ needs.opa-gate.result }}
+            Deploy      : ${{ needs.deploy.result }}
+          SLACK_FOOTER: "AWS Three-Tier Architecture | ${{ github.repository }}"

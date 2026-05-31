@@ -193,9 +193,9 @@
 #           echo "| Checkov CIS AWS | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
 #           echo "| OPA Policy      | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
 
-#   # -------------------------------------------------------
+#   # =======================================================
 #   # JOB 3: Deploy to dev (auto on push to main, or manual)
-#   # -------------------------------------------------------
+#   # =======================================================
 #   deploy-dev:
 #     name: Deploy - dev
 #     runs-on: ubuntu-latest
@@ -283,11 +283,11 @@
 #           echo "| Triggered by | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
 #           echo "| Commit      | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
 
-#   # -------------------------------------------------------
+#   # =======================================================
 #   # JOB 4: Deploy to prod (manual only, requires GitHub
 #   #         Environment approval - configure reviewers at:
 #   #         Settings > Environments > production)
-#   # -------------------------------------------------------
+#   # =======================================================
 #   deploy-prod:
 #     name: Deploy - prod
 #     runs-on: ubuntu-latest
@@ -384,9 +384,9 @@
 #           echo "| Commit      | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
 #           echo "| Run ID      | ${{ github.run_id }} |" >> $GITHUB_STEP_SUMMARY
 
-#   # -------------------------------------------------------
+#   # =======================================================
 #   # JOB 5: Destroy (workflow_dispatch only, requires confirm)
-#   # -------------------------------------------------------
+#   # =======================================================
 #   destroy:
 #     name: Destroy infra
 #     runs-on: ubuntu-latest
@@ -454,9 +454,9 @@
 #           echo "| Destroyed by | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
 #           echo "| Commit      | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
 
-#   # -------------------------------------------------------
+#   # =======================================================
 #   # JOB 6: Notify via Slack on completion
-#   # -------------------------------------------------------
+#   # =======================================================
 #   notify-slack:
 #     name: Notify Slack
 #     runs-on: ubuntu-latest
