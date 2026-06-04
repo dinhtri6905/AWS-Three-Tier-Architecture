@@ -81,3 +81,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
 #     ]
 #   })
 # }
+
+# resource "aws_s3_bucket" "name" {
+  
+# }
