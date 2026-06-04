@@ -6,7 +6,6 @@ variable "project_name" {
 variable "environment" {
   description = "Deploy Environment"
   type        = string
-  default     = "dev"
 }
 
 variable "db_subnet_ids" {

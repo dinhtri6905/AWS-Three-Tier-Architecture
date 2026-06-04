@@ -1,4 +1,6 @@
-# ===== MODULE: VPC =====
+# ============================================================
+# MODULE: VPC
+# ============================================================
 module "vpc" {
   source = "../../modules/vpc"
 
@@ -12,7 +14,9 @@ module "vpc" {
   db_subnet_cidrs     = var.db_subnets_cidrs
 }
 
-# ===== MODULE: SECURITY GROUP =====
+# ============================================================
+# MODULE: SECURITY GROUP
+# ============================================================
 module "security-group" {
   source = "../../modules/security-group"
 
@@ -22,7 +26,9 @@ module "security-group" {
   vpc_id = module.vpc.vpc_id
 }
 
-# ===== MODULE: APPLICATION LOAD BALANCER =====
+# ============================================================
+# MODULE: APPLICATION LOAD BALANCER
+# ============================================================
 module "alb" {
   source = "../../modules/alb"
 
@@ -34,7 +40,9 @@ module "alb" {
   alb_security_group_id = module.security-group.alb_security_group_id
 }
 
-# ===== MODULE: EC2 =====
+# ============================================================
+# MODULE: EC2
+# ============================================================
 module "ec2" {
   source = "../../modules/ec2"
 
@@ -48,7 +56,9 @@ module "ec2" {
   target_group_arn      = module.alb.target_group_arn
 }
 
-# ===== MODULE: AUTO SCALING =====
+# ============================================================
+# MODULE: AUTO SCALING
+# ============================================================
 module "autoscaling" {
   source = "../../modules/autoscaling"
 
@@ -67,7 +77,9 @@ module "autoscaling" {
   max_size         = var.max_size
 }
 
-# ===== MODULE: RDS =====
+# ============================================================
+# MODULE: RDS
+# ============================================================
 module "rds" {
   source = "../../modules/rds"
 
@@ -87,11 +99,39 @@ module "rds" {
 
   multi_az = var.multi_az
 }
-# ===== MODULE: MONITORING =====
+
+# ============================================================
+# MODULE: MONITORING
+# CloudWatch Alarms, Log Groups, Dashboard, SNS
+# ============================================================
 module "monitoring" {
   source = "../../modules/monitoring"
 
   project_name = var.project_name
   environment  = var.environment
+  aws_region   = var.aws_region
 
+  # SNS
+  sns_email = var.sns_email
+
+  # App tier
+  autoscaling_group_name = module.autoscaling.autoscaling_group_name
+  asg_cpu_high_threshold = var.asg_cpu_high_threshold
+  asg_cpu_low_threshold  = var.asg_cpu_low_threshold
+
+  # Data tier
+  rds_instance_id            = module.rds.rds_instance_id
+  rds_cpu_high_threshold     = var.rds_cpu_high_threshold
+  rds_free_storage_threshold = var.rds_free_storage_threshold
+  rds_connections_threshold  = var.rds_connections_threshold
+
+  # Web tier
+  alb_arn_suffix              = module.alb.alb_arn_suffix
+  target_group_arn_suffix     = module.alb.target_group_arn_suffix
+  alb_5xx_threshold           = var.alb_5xx_threshold
+  alb_response_time_threshold = var.alb_response_time_threshold
+
+  # Log groups
+  log_retention_days = var.log_retention_days
 }
+

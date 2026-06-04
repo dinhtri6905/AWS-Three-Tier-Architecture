@@ -1,4 +1,6 @@
-# ========== GENERAL ==========
+# ============================================================
+# GENERAL 
+# ============================================================
 variable "project_name" {
   description = "Project Name"
   type        = string
@@ -17,7 +19,9 @@ variable "aws_region" {
   default     = "ap-southeast-1"
 }
 
-# ========== VPC ==========
+# ============================================================
+# VPC 
+# ============================================================
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
   type        = string
@@ -68,13 +72,19 @@ variable "availability_zones" {
   ]
 }
 
-# ========== SECURITY GROUP ==========
+# ============================================================
+# SECURITY GROUP 
+# ============================================================
 
 
-# ========== APPLICATION LOAD BALANCER ==========
+# ============================================================
+# APPLICATION LOAD BALANCER 
+# ============================================================
 
 
-# ========== EC2 ==========
+# ============================================================
+# EC2 
+# ============================================================
 variable "ami_id" {
   description = "AMI ID for EC2 instances"
   type        = string
@@ -88,7 +98,9 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-# ========== AUTOSCALING ==========
+# ============================================================
+# AUTOSCALING 
+# ============================================================
 variable "desired_capacity" {
   description = "Desired number of EC2 instances"
   type        = number
@@ -107,7 +119,9 @@ variable "max_size" {
   default     = 4
 }
 
-# ========== RDS ==========
+# ============================================================
+# RDS 
+# ============================================================
 variable "db_instance_class" {
   description = "RDS instance class"
   type        = string
@@ -151,6 +165,69 @@ variable "multi_az" {
 }
 
 
-# ========== MONITORING ==========
+# ============================================================
+# MONITORING 
+# ============================================================
 
+variable "sns_email" {
+  description = "Email nhan canh bao CloudWatch. De trong neu khong can"
+  type        = string
+  default     = "nguyendinhtri060905@gmail.com"
+}
+
+variable "asg_cpu_high_threshold" {
+  description = "Nguong CPU cao cua ASG (%), alarm khi CPU > nguong nay"
+  type        = number
+  default     = 80
+}
+
+variable "asg_cpu_low_threshold" {
+  description = "Nguong CPU thap cua ASG (%), alarm khi CPU < nguong nay"
+  type        = number
+  default     = 20
+}
+###
+variable "rds_cpu_high_threshold" {
+  description = "Nguong CPU cao cua RDS (%)"
+  type        = number
+  default     = 80
+}
+
+variable "rds_free_storage_threshold" {
+  description = "Nguong dung luong RDS con lai (bytes). Mac dinh 5 GB"
+  type        = number
+  default     = 5368709120
+}
+
+variable "rds_connections_threshold" {
+  description = "Nguong so ket noi RDS dong thoi"
+  type        = number
+  default     = 100
+}
+
+variable "alb_5xx_threshold" {
+  description = "So luong loi 5xx ALB trong 1 phut"
+  type        = number
+  default     = 10
+}
+
+variable "alb_response_time_threshold" {
+  description = "Response time trung binh cua ALB (giay), alarm khi vuot nguong nay"
+  type        = number
+  default     = 2
+}
+
+variable "log_retention_days" {
+  description = "So ngay giu log trong CloudWatch Log Group"
+  type        = number
+  default     = 14
+
+  validation {
+    condition = contains(
+      [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653],
+      var.log_retention_days
+    )
+    error_message = "log_retention_days phai la gia tri hop le cua CloudWatch: 1, 3, 5, 7, 14, 30, 60, 90, ..."
+  }
+}
 

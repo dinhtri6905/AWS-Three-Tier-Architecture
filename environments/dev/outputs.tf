@@ -95,3 +95,43 @@ output "rds_arn" {
   description = "RDS ARN"
   value       = module.rds.rds_instance_arn
 }
+
+# ============================================================
+# MONITORING
+# ============================================================
+output "sns_topic_arn" {
+  description = "ARN cua SNS topic nhan canh bao"
+  value       = module.monitoring.sns_topic_arn
+}
+
+output "dashboard_name" {
+  description = "Ten CloudWatch Dashboard"
+  value       = module.monitoring.dashboard_name
+}
+
+output "dashboard_url" {
+  description = "URL truy cap CloudWatch Dashboard"
+  value       = module.monitoring.dashboard_url
+}
+
+output "asg_cpu_high_alarm_name" {
+  description = "Ten alarm ASG CPU cao"
+  value       = module.monitoring.asg_cpu_high_alarm_name
+}
+
+output "rds_cpu_alarm_name" {
+  description = "Ten alarm RDS CPU cao"
+  value       = module.monitoring.rds_cpu_alarm_name
+}
+
+output "alb_5xx_alarm_name" {
+  description = "Ten alarm ALB 5xx loi"
+  value       = module.monitoring.alb_5xx_alarm_name
+}
+
+output "app_log_group_name" {
+  description = "Ten CloudWatch Log Group cua App tier"
+  value       = module.monitoring.app_log_group_name
+}
+
+
