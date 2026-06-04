@@ -166,34 +166,6 @@ Database subnets do not have direct Internet access for improved security.
 
 ---
 
-# Deployment Workflow
-
-## Initialize Terraform
-
-```bash
-terraform init
-```
-
-## Validate Terraform Configuration
-
-```bash
-terraform validate
-```
-
-## Preview Infrastructure Changes
-
-```bash
-terraform plan
-```
-
-## Deploy Infrastructure
-
-```bash
-terraform apply
-```
-
----
-
 # Future Improvements
 
 * Bastion Host

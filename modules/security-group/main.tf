@@ -7,6 +7,8 @@ locals {
 
 # ===== SECURITY GROUP: APPLICATION LOAD BALANCER =====
 resource "aws_security_group" "alb" {
+  #checkov:skip=CKV2_AWS_5: Security group attached in downstream modules
+
   name        = "${local.name_prefix}-alb-sg"
   description = "Security Group for Application Load Balancer"
   vpc_id      = var.vpc_id
@@ -18,6 +20,8 @@ resource "aws_security_group" "alb" {
 
 # ===== SECURITY GROUP: APPLICATION EC2 =====
 resource "aws_security_group" "ec2" {
+  #checkov:skip=CKV2_AWS_5: Security group attached in downstream modules
+
   name        = "${local.name_prefix}-ec2-sg"
   description = "Security Group for Application EC2"
   vpc_id      = var.vpc_id
@@ -29,6 +33,8 @@ resource "aws_security_group" "ec2" {
 
 # ===== SECURITY GROUP: RDS DATABASE =====
 resource "aws_security_group" "rds" {
+  #checkov:skip=CKV2_AWS_5: Security group attached in downstream modules
+
   name        = "${local.name_prefix}-rds-sg"
   description = "Security Group for RDS Database"
   vpc_id      = var.vpc_id
@@ -43,6 +49,9 @@ resource "aws_security_group" "rds" {
 
 # ===== Internet -> ALB HTTP =====
 resource "aws_security_group_rule" "alb_ingress_http" {
+  #checkov:skip=CKV_AWS_260: Public ALB requires HTTP access from Internet in lab environment
+  #checkov:skip=CKV_AWS_382: Wide egress allowed for lab environment
+
   type              = "ingress"
   description       = "Allow HTTP from Internet"
   from_port         = 80

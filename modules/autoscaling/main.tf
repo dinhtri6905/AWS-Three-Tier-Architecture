@@ -10,6 +10,12 @@ resource "aws_launch_template" "app" {
 
   vpc_security_group_ids = [var.app_security_group_id]
 
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
+
   user_data = base64encode(<<-EOF
         #!/bin/bash
         yum update -y
@@ -21,7 +27,6 @@ resource "aws_launch_template" "app" {
 
         echo "<h1>Three-Tier Architecture Auto Scaling Server $(hostname)</h1>" > /var/www/html/index.html
         EOF
-
   )
 
   tag_specifications {

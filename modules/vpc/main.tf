@@ -4,6 +4,9 @@ locals {
 
 # ===== VPC =====
 resource "aws_vpc" "main" {
+  #checkov:skip=CKV2_AWS_12: Default security group not used in this architecture
+  #checkov:skip=CKV2_AWS_11: VPC Flow Logs not required for lab environment
+
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -24,6 +27,8 @@ resource "aws_internet_gateway" "main" {
 
 # ===== PUBLIC SUBNETS =====
 resource "aws_subnet" "public" {
+  #checkov:skip=CKV_AWS_130: Public subnet required for internet-facing ALB
+
   count = length(var.availability_zones)
 
   vpc_id                  = aws_vpc.main.id

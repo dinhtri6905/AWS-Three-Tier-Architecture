@@ -6,6 +6,8 @@ locals {
 # SNS TOPIC + EMAIL SUBSCRIPTION
 # ============================================================
 resource "aws_sns_topic" "alerts" {
+  #checkov:skip=CKV_AWS_26: SNS encryption not required for lab environment
+
   name = "${local.name_prefix}-alerts"
 }
 
@@ -185,11 +187,15 @@ resource "aws_cloudwatch_metric_alarm" "alb_unhealthy_hosts" {
 # CLOUDWATCH LOG GROUPS
 # ============================================================
 resource "aws_cloudwatch_log_group" "app" {
+  #checkov:skip=CKV_AWS_158: KMS encryption not required for lab environment
+
   name              = "/aws/ec2/${local.name_prefix}/app"
   retention_in_days = var.log_retention_days
 }
 
 resource "aws_cloudwatch_log_group" "web" {
+  #checkov:skip=CKV_AWS_158: KMS encryption not required for lab environment
+
   name              = "/aws/ec2/${local.name_prefix}/web"
   retention_in_days = var.log_retention_days
 }

@@ -23,3 +23,7 @@ variable "alb_security_group_id" {
   type        = string
 }
 
+variable "alb_logs_id" {
+  description = "ID của S3 Bucket (ALB Logs)"
+  type        = string
+}

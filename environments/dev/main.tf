@@ -27,6 +27,15 @@ module "security-group" {
 }
 
 # ============================================================
+# MODULE: S3
+# ============================================================
+module "s3" {
+  source = "../../modules/s3"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+# ============================================================
 # MODULE: APPLICATION LOAD BALANCER
 # ============================================================
 module "alb" {
@@ -38,6 +47,8 @@ module "alb" {
   vpc_id                = module.vpc.vpc_id
   public_subnet_ids     = module.vpc.public_subnet_ids
   alb_security_group_id = module.security-group.alb_security_group_id
+
+  alb_logs_id = module.s3.alb_logs_id
 }
 
 # ============================================================

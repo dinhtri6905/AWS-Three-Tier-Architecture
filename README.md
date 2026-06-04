@@ -77,7 +77,7 @@ Traffic từ internet chỉ vào được qua ALB. App tier nằm ở private su
 | Security Groups | Least-privilege theo từng tier, có description rõ ràng |
 | IAM | Instance profiles, role-based — không gán policy trực tiếp vào user |
 | CloudWatch | Log groups, metric alarms cho hạ tầng |
-| CloudTrail | Multi-region, log file validation, tích hợp CloudWatch Logs |
+<!-- | CloudTrail | Multi-region, log file validation, tích hợp CloudWatch Logs | -->
 
 ---
 
