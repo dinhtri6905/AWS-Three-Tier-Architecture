@@ -109,7 +109,7 @@ module "monitoring" {
 
   project_name = var.project_name
   environment  = var.environment
-  aws_region = var.aws_region
+  aws_region   = var.aws_region
 
   # SNS
   sns_email = var.sns_email
@@ -126,9 +126,9 @@ module "monitoring" {
   rds_connections_threshold  = var.rds_connections_threshold
 
   # Web tier — lay tu output cua module alb
-  alb_arn_suffix          = module.alb.alb_arn_suffix
-  target_group_arn_suffix = module.alb.target_group_arn_suffix
-  alb_5xx_threshold       = var.alb_5xx_threshold
+  alb_arn_suffix              = module.alb.alb_arn_suffix
+  target_group_arn_suffix     = module.alb.target_group_arn_suffix
+  alb_5xx_threshold           = var.alb_5xx_threshold
   alb_response_time_threshold = var.alb_response_time_threshold
 
   # Log groups
