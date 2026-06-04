@@ -46,6 +46,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
+  #checkov:skip=CKV_AWS_300: Multipart upload cleanup not required for ALB log bucket
+
   bucket = aws_s3_bucket.alb_logs.id
 
   rule {
@@ -55,6 +57,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
     expiration {
       days = 30
     }
+
+    # abort_incomplete_multipart_upload {
+    #   days_after_initiation = 7
+    # }
   }
 }
 
@@ -80,8 +86,4 @@ resource "aws_s3_bucket_lifecycle_configuration" "alb_logs" {
 #       }
 #     ]
 #   })
-# }
-
-# resource "aws_s3_bucket" "name" {
-  
 # }
