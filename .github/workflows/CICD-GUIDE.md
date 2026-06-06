@@ -164,7 +164,7 @@ Terraform cần một S3 bucket để lưu state file. Bucket này phải tạo 
 
 ```bash
 # Thay YOUR-BUCKET-NAME bằng tên bucket của bạn (phải unique toàn cầu)
-# Ví dụ: three-tier-tfstate-dev-2024
+# Ví dụ: three-tier-tfstate-dev-2024, three-tier-terraform-state
 
 aws s3api create-bucket \
   --bucket YOUR-BUCKET-NAME \

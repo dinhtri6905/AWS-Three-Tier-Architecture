@@ -76,7 +76,6 @@ jobs:
       - name: Generate Terraform plan
         run: |
           terraform plan \
-            -var-file="terraform.tfvars" \
             -out=tfplan \
             -no-color \
             -input=false
