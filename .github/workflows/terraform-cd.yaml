@@ -15,7 +15,7 @@ name: Terraform CD
 # GitHub Secrets can thiet:
 #   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 #   BUCKET_TF_STATE (S3 bucket luu Terraform state)
-#   DB_PASSWORD     (truyen qua TF_VAR_db_password)
+#   DB_PASSWORD     (truyen qua TF_VAR_database_password)
 #   SLACK_WEBHOOK_URL
 
 on:
@@ -101,7 +101,7 @@ jobs:
           fi
           echo "Plan exit code: $EXITCODE (0=no changes, 2=changes)"
         env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_database_password: ${{ secrets.DB_PASSWORD }}
 
       - name: Export plan to JSON
         run: |
@@ -359,7 +359,7 @@ jobs:
         id: destroy_plan
         run: terraform plan -destroy -out=tfplan_destroy -no-color
         env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_database_password: ${{ secrets.DB_PASSWORD }}
 
       - name: Destroy plan status
         if: steps.destroy_plan.outcome == 'failure'
@@ -369,7 +369,7 @@ jobs:
         run: terraform destroy -auto-approve -no-color
         env:
           TF_INPUT: false
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_database_password: ${{ secrets.DB_PASSWORD }}
 
 # =============================================================================
 # JOB 5: Slack Notification - bao cao trang thai cuoi cung cua pipeline
