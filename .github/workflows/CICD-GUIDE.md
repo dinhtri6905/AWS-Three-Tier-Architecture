@@ -164,7 +164,7 @@ Terraform cần một S3 bucket để lưu state file. Bucket này phải tạo 
 
 ```bash
 # Thay YOUR-BUCKET-NAME bằng tên bucket của bạn (phải unique toàn cầu)
-# Ví dụ: three-tier-tfstate-dev-2024, three-tier-terraform-state
+# Ví dụ: three-tier-terraform-state-2026
 
 aws s3api create-bucket \
   --bucket YOUR-BUCKET-NAME \
@@ -218,6 +218,13 @@ terraform {
     dynamodb_table = "terraform-state-lock"
   }
 }
+```
+
+### 2.4 Còn cách khác: cd backend
+```bash
+terraform init
+terraform plan
+terraform apply
 ```
 
 ---
