@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "tfstate_bucket_name" {
   description = "Terraform State S3 Bucket Name"
   type        = string
-  default     = "three-tier-terraform-state"
+  default     = "three-tier-terraform-state-2026"
 }
 
 variable "dynamodb_lock_table_name" {
