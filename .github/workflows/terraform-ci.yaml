@@ -4,9 +4,7 @@ name: Terraform CI
 # Khong can AWS credentials - tat ca buoc dung -backend=false.
 # 
 # Luong chay:
-#   validate --> tflint, tfsec, checkov (song song)
-#                         |
-#                    ci-summary (tong hop ket qua, comment PR, notify Slack)
+#   validate --> tflint, tfsec, checkov (song song) -->ci-summary (tong hop ket qua, comment PR, notify Slack)
 
 on:
   push:

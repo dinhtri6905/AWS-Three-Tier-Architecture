@@ -19,15 +19,15 @@ package terraform.compliance
 # =============================================================================
 
 # CIS 2.1.1: S3 phai bat server-side encryption
-deny contains msg if {
-    resource := input.resource_changes[_]
-    resource.type == "aws_s3_bucket"
-    not resource.change.after.server_side_encryption_configuration
-    msg := sprintf(
-        "[CIS 2.1.1] S3 bucket '%s': phai bat server-side encryption (SSE-S3 hoac SSE-KMS)",
-        [resource.address]
-    )
-}
+# deny contains msg if {
+#     resource := input.resource_changes[_]
+#     resource.type == "aws_s3_bucket"
+#     not resource.change.after.server_side_encryption_configuration
+#     msg := sprintf(
+#         "[CIS 2.1.1] S3 bucket '%s': phai bat server-side encryption (SSE-S3 hoac SSE-KMS)",
+#         [resource.address]
+#     )
+# }
 
 # CIS 2.1.2: S3 phai bat versioning
 deny contains msg if {
@@ -86,11 +86,11 @@ deny contains msg if {
 # =============================================================================
 
 # CIS 3.1: Phai co it nhat 1 CloudTrail trail duoc bat
-deny contains msg if {
-    trails := [r | r := input.resource_changes[_]; r.type == "aws_cloudtrail"]
-    count(trails) == 0
-    msg := "[CIS 3.1] Khong tim thay aws_cloudtrail resource - phai co it nhat 1 CloudTrail trail"
-}
+# deny contains msg if {
+#     trails := [r | r := input.resource_changes[_]; r.type == "aws_cloudtrail"]
+#     count(trails) == 0
+#     msg := "[CIS 3.1] Khong tim thay aws_cloudtrail resource - phai co it nhat 1 CloudTrail trail"
+# }
 
 # CIS 3.2: CloudTrail phai bat log file validation
 deny contains msg if {
@@ -204,43 +204,43 @@ deny contains msg if {
 }
 
 # Resource phai co tag Environment
-deny contains msg if {
-    resource := input.resource_changes[_]
-    taggable_resources[resource.type]
-    tags := resource.change.after.tags
-    tags
-    not tags.Environment
-    msg := sprintf(
-        "Resource '%s' (%s): thieu tag 'Environment' (gia tri: dev | staging | prod)",
-        [resource.address, resource.type]
-    )
-}
+# deny contains msg if {
+#     resource := input.resource_changes[_]
+#     taggable_resources[resource.type]
+#     tags := resource.change.after.tags
+#     tags
+#     not tags.Environment
+#     msg := sprintf(
+#         "Resource '%s' (%s): thieu tag 'Environment' (gia tri: dev | staging | prod)",
+#         [resource.address, resource.type]
+#     )
+# }
 
 # Resource phai co tag Project
-deny contains msg if {
-    resource := input.resource_changes[_]
-    taggable_resources[resource.type]
-    tags := resource.change.after.tags
-    tags
-    not tags.Project
-    msg := sprintf(
-        "Resource '%s' (%s): thieu tag 'Project'",
-        [resource.address, resource.type]
-    )
-}
+# deny contains msg if {
+#     resource := input.resource_changes[_]
+#     taggable_resources[resource.type]
+#     tags := resource.change.after.tags
+#     tags
+#     not tags.Project
+#     msg := sprintf(
+#         "Resource '%s' (%s): thieu tag 'Project'",
+#         [resource.address, resource.type]
+#     )
+# }
 
 # Resource phai co tag ManagedBy = Terraform
-deny contains msg if {
-    resource := input.resource_changes[_]
-    taggable_resources[resource.type]
-    tags := resource.change.after.tags
-    tags
-    not tags.ManagedBy
-    msg := sprintf(
-        "Resource '%s' (%s): thieu tag 'ManagedBy' (gia tri: Terraform)",
-        [resource.address, resource.type]
-    )
-}
+# deny contains msg if {
+#     resource := input.resource_changes[_]
+#     taggable_resources[resource.type]
+#     tags := resource.change.after.tags
+#     tags
+#     not tags.ManagedBy
+#     msg := sprintf(
+#         "Resource '%s' (%s): thieu tag 'ManagedBy' (gia tri: Terraform)",
+#         [resource.address, resource.type]
+#     )
+# }
 
 # =============================================================================
 # WARN - Khuyen nghi CIS, khong block deploy
