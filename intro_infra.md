@@ -113,6 +113,7 @@ AWS-Three-Tier-Architecture/
 │   ├── alb/
 │   ├── autoscaling/
 │   ├── ec2/
+│   ├── s3/
 │   ├── monitoring/
 │   ├── rds/
 │   ├── security-group/

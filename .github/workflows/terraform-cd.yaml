@@ -19,13 +19,13 @@ name: Terraform CD
 #   SLACK_WEBHOOK_URL
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-    paths:
-      - 'environments/dev/**'
-      - 'modules/**'
+  # push:
+  #   branches:
+  #     - main
+  #     - develop
+  #   paths:
+  #     - 'environments/dev/**'
+  #     - 'modules/**'
   workflow_dispatch:
     inputs:
       action:

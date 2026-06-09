@@ -7,6 +7,7 @@ Infrastructure AWS ba tầng được triển khai hoàn toàn bằng **Terrafor
 ## Mục lục
 
 - [Kiến trúc tổng quan](#kiến-trúc-tổng-quan)
+- [Mô hình kiến trúc tổng thể](#mô-hình-kiến-trúc-tổng-thể)
 - [Thành phần hạ tầng](#thành-phần-hạ-tầng)
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
 - [CI/CD Pipeline](#cicd-pipeline)
@@ -39,6 +40,11 @@ Internet
 ```
 
 Traffic từ internet chỉ vào được qua ALB. App tier nằm ở private subnet, chỉ nhận kết nối từ ALB Security Group. RDS nằm ở DB subnet group riêng biệt, chỉ nhận kết nối từ App tier Security Group — không có route nào ra internet trực tiếp.
+
+---
+
+## Mô hình kiến trúc tổng thể 
+![Architecture](images/architecture.png)
 
 ---
 
@@ -109,6 +115,7 @@ AWS-Three-Tier-Architecture/
 │   ├── security-group/            # Security group per-tier
 │   ├── alb/                       # Application Load Balancer
 │   ├── ec2/                       # Web và App tier EC2
+│   ├── s3/                        # Lưu trữ logs
 │   ├── autoscaling/               # Auto Scaling Group cho App tier
 │   ├── rds/                       # RDS MySQL/PostgreSQL
 │   └── monitoring/                # CloudWatch, alarms, log groups
@@ -320,7 +327,8 @@ Xem `CICD-GUIDE.md` để biết cách tạo từng mục trên theo thứ tự 
 ### 1. Tạo S3 backend và DynamoDB lock table
 
 ```bash
-# Tạo S3 bucket
+##### TẠO BẰNG CLI #####
+# Tạo S3 bucket 
 aws s3api create-bucket \
   --bucket <tên-bucket> \
   --region ap-southeast-1 \
@@ -337,6 +345,13 @@ aws dynamodb create-table \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
   --region ap-southeast-1
+
+##### VÀO FOLDER BACKEND TẠO TẰNG TERRAFORM #####
+terraform init
+
+terraform plan
+
+terraform apply
 ```
 
 ### 2. Cấu hình backend và tfvars
