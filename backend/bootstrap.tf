@@ -22,8 +22,10 @@ resource "aws_kms_alias" "tfstate" {
 resource "aws_s3_bucket" "tfstate" {
   bucket = var.tfstate_bucket_name
 
+  force_destroy = true
+
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   tags = {
@@ -123,7 +125,7 @@ resource "aws_dynamodb_table" "terraform_lock" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   tags = {
