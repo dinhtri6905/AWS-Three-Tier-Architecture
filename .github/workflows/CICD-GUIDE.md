@@ -1,3 +1,9 @@
+## Mô hình kiến trúc tổng thể 
+
+![CICD_Pipeline](../../images/cicd_pipeline.png)
+
+---
+
 # Hướng dẫn chạy CI/CD Pipeline
 
 ## Mục lục
