@@ -195,10 +195,3 @@ This project helps practice:
 * High Availability Architecture
 * Scalable Cloud Infrastructure
 * Production-style AWS Design
-
----
-
-# Author
-
-Nguyen Dinh Tri
-
